@@ -1,0 +1,48 @@
+Configuring a Storage Provisioner using Kubernetes NFS Subdir External Provisioner
+-----------------------------------------------------------------------------------
+
+On Control Node Install NFS Server
+- sudo apt install nfs-server -y
+
+On Other Nodes install NFS Client
+- sudo apt install nfs-client
+
+On Control Node
+- sudo mkdir /store
+- sudo sh -c 'echo "/store *(rw,no_root_squash)" > /etc/exports'
+- sudo systemctl restart nfs-server
+
+On other nodes
+- showmount -e control
+
+
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+    --set nfs.server=controlplan-ip \
+    --set nfs.path=/store
+
+- use kubectl get pods to verify the appropriate pod is running
+- list the storageclass
+
+
+Provision a demo PVC (make it fail by removing storage class name)
+--------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo-nfs-pvc
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Mi
+
+Set Default Storage Class
+
+- Edit storage class and add annotation 
+"storageclass.kubernetes.io/is-default-class":"true"
+
+- kubectl get pvc
