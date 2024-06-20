@@ -46,4 +46,3 @@ Set Default Storage Class
 "storageclass.kubernetes.io/is-default-class":"true"
 
 - kubectl get pvc
-
